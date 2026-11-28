@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { LevelsFile, RowKey } from '../levels'
 import { ROWS } from '../levels'
 import { formatDate, formatDateTime, formatInt } from '../format'
@@ -17,6 +17,17 @@ const FRAMES: FrameNo[] = [1, 2, 3, 4, 5]
 export default function UserPanel({ user, levels }: Props) {
   const [row, setRow] = useState<RowKey>('user_page')
   const [frame, setFrame] = useState<FrameNo>(1)
+  const boxesRef = useRef<HTMLDivElement>(null)
+
+  // Frames 4–5: scroll to the end so the paragraph the frame adds is visible right away
+  useLayoutEffect(() => {
+    if (frame < 4) return
+    const root = boxesRef.current
+    if (!root) return
+    for (const el of [root, ...Array.from(root.querySelectorAll<HTMLElement>('.box-body'))]) {
+      if (el.scrollHeight > el.clientHeight) el.scrollTop = el.scrollHeight
+    }
+  }, [frame, row])
 
   if (!levels) {
     return (
@@ -62,7 +73,7 @@ export default function UserPanel({ user, levels }: Props) {
           ))}
         </div>
         {/* key: scroll positions and folded templates reset when the view changes */}
-        <div className="frame-boxes" key={`${row}:${frame}`}>
+        <div className="frame-boxes" key={`${row}:${frame}`} ref={boxesRef}>
           <FrameContent levels={levels} row={row} frame={frame} />
         </div>
       </div>
