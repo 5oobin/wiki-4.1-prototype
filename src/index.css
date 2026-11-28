@@ -435,5 +435,5 @@ code { font-size: 0.92em; background: #f8f9fa; padding: 0 2px; }
 
 /* "Information source:" label beside the row dropdown */
 .row-select-label { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
-.row-select-caption { font-size: 14px; white-space: nowrap; }
+.row-select-caption { font-size: 14px; font-weight: bold; white-space: nowrap; }
 .row-select-label .row-select { margin-bottom: 0; flex: 1 1 auto; width: auto; min-width: 0; }

@@ -452,19 +452,14 @@ const violationText = (v: unknown) =>
 
 function DiscussionRow({ levels, frame }: { levels: LevelsFile; frame: FrameNo }) {
   const violation = levels.extract?.in_the_discussion?.violation
-  if (frame <= 3) {
-    let posts: ReactNode
+  // Frames 1–2: separate Violation and Posts boxes. Frames 3–5: one box.
+  if (frame <= 2) {
     let info: string | undefined
-    if (frame === 3) {
-      const s = levels.select?.in_the_discussion
-      posts = <SelectKindBody k={s?.kind} unit="post" compact hideBasedOn />
-    } else {
-      const d = frame === 1 ? levels.extract?.in_the_discussion : levels.prioritize?.in_the_discussion
-      const items: PostItem[] = frame === 1 ? (d?.kind ?? []) : (d?.kind?.items ?? [])
-      if (frame === 1) info = 'Listed from oldest to newest.'
-      if (frame === 2 && items.length > 1) info = INFO.discussion
-      posts = !d ? <Muted>{NOT_YET}</Muted> : items.length ? <ItemList items={items} unit="post" /> : <Muted>{d.kind?.note ?? EMPTY_NOTE('post')}</Muted>
-    }
+    const d = frame === 1 ? levels.extract?.in_the_discussion : levels.prioritize?.in_the_discussion
+    const items: PostItem[] = frame === 1 ? (d?.kind ?? []) : (d?.kind?.items ?? [])
+    if (frame === 1) info = 'Listed from oldest to newest.'
+    if (frame === 2 && items.length > 1) info = INFO.discussion
+    const posts = !d ? <Muted>{NOT_YET}</Muted> : items.length ? <ItemList items={items} unit="post" /> : <Muted>{d.kind?.note ?? EMPTY_NOTE('post')}</Muted>
     return (
       <>
         {violation === false ? (
@@ -479,7 +474,7 @@ function DiscussionRow({ levels, frame }: { levels: LevelsFile; frame: FrameNo }
             <p className="frame-para">{violationText(violation)}</p>
           </Box>
         )}
-        <Box title={frame === 3 ? undefined : 'Posts'} info={info} infoInline={frame === 1}>
+        <Box title="Posts" info={info} infoInline={frame === 1}>
           {posts}
         </Box>
       </>
