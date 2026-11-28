@@ -140,20 +140,47 @@ const BasedOn = ({ text }: { text?: string }) => (text ? <p className="based-on"
 
 /* ---- Shared pieces for Frames 3–5 ---- */
 
-/** "(Based on …)" at the end of the description, then a folded "show examples". */
-function Described({ description, basedOn, examples }: { description?: string; basedOn?: string; examples: ReactNode }) {
+/**
+ * One part of Frames 3–5: title with the ⓘ "Based on …" note beside it (or the
+ * note alone when there's no title), the description, then a folded
+ * "Show me some examples" on its own line, flush left.
+ */
+function Described({
+  title,
+  description,
+  basedOn,
+  examples,
+}: {
+  title?: string
+  description?: string
+  basedOn?: string
+  examples: ReactNode
+}) {
   const [open, setOpen] = useState(false)
+  const info = basedOn ? (
+    <>
+      <span className="info-icon" aria-hidden="true">
+        ⓘ
+      </span>{' '}
+      {basedOn}
+    </>
+  ) : null
   return (
     <div className="described">
-      <p className="frame-para">
-        {description}
-        {basedOn && <span className="based-on-inline"> ({basedOn.replace(/\.$/, '')})</span>}{' '}
-        {examples != null && (
-          <button className="link-btn examples-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-            {open ? 'hide examples' : 'show examples'}
-          </button>
-        )}
-      </p>
+      {title ? (
+        <div className="part-head">
+          <span className="box-title">{title}</span>
+          {info && <span className="box-sub info inline">{info}</span>}
+        </div>
+      ) : info ? (
+        <p className="part-info">{info}</p>
+      ) : null}
+      {description && <p className="frame-para">{description}</p>}
+      {examples != null && (
+        <button className="link-btn examples-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+          {open ? 'Hide examples' : 'Show me some examples'}
+        </button>
+      )}
       {open && examples}
     </div>
   )
@@ -163,10 +190,14 @@ function SelectKindBody({
   k,
   unit,
   compact,
+  title,
+  hideBasedOn,
 }: {
   k: SelectKind<EditItem | PostItem> | undefined
   unit: Unit
-  compact?: boolean // description (Based on …) + folded examples
+  compact?: boolean // title + ⓘ Based on …, description, folded examples
+  title?: string
+  hideBasedOn?: boolean
 }) {
   if (!k) return <Muted>{NOT_YET}</Muted>
   if (k.note) return <Muted>{k.note}</Muted>
@@ -178,7 +209,7 @@ function SelectKindBody({
         )}
       </div>
     ) : null
-    return <Described description={k.description} basedOn={k.based_on} examples={ex} />
+    return <Described title={title} description={k.description} basedOn={hideBasedOn ? undefined : k.based_on} examples={ex} />
   }
   return (
     <>
@@ -195,7 +226,7 @@ function SelectKindBody({
   )
 }
 
-function SelectTopicBody({ t, unit, compact }: { t: SelectTopic | undefined; unit: Unit; compact?: boolean }) {
+function SelectTopicBody({ t, unit, compact, title }: { t: SelectTopic | undefined; unit: Unit; compact?: boolean; title?: string }) {
   if (!t) return <Muted>{NOT_YET}</Muted>
   if (t.note) return <Muted>{t.note}</Muted>
   if (compact) {
@@ -204,7 +235,7 @@ function SelectTopicBody({ t, unit, compact }: { t: SelectTopic | undefined; uni
         <CountedPages pages={t.pages} unit={unit} />
       </div>
     ) : null
-    return <Described description={t.description} basedOn={t.based_on} examples={ex} />
+    return <Described title={title} description={t.description} basedOn={t.based_on} examples={ex} />
   }
   return (
     <>
@@ -215,14 +246,25 @@ function SelectTopicBody({ t, unit, compact }: { t: SelectTopic | undefined; uni
   )
 }
 
-/** Frame 4 and 5 additions. Rows with no data (a note) add nothing. */
+/**
+ * Frame 4 and 5 additions, each set off by a line above it. Only the paragraph
+ * the current frame adds is bold (Frame 4: connection; Frame 5: judgment).
+ * Rows with no data (a note) add nothing.
+ */
 function Additions({ levels, row, frame }: { levels: LevelsFile; row: RowKey; frame: FrameNo }) {
   if (frame < 4) return null
   const c = levels.connect?.[row]
   const j = levels.judge?.[row]
   const out: ReactNode[] = []
+  const cls = (adds: boolean) => 'frame-para' + (adds ? ' added' : '')
   if (!c) out.push(<Muted key="c">{NOT_YET}</Muted>)
-  else if (!c.note) out.push(<Para key="c">{c.connections?.trim() ? c.connections : NO_CONNECTIONS}</Para>)
+  else if (!c.note)
+    out.push(
+      <div key="c">
+        <hr className="frame-rule" />
+        <p className={cls(frame === 4)}>{c.connections?.trim() ? c.connections : NO_CONNECTIONS}</p>
+      </div>,
+    )
   if (frame === 5) {
     if (!j) out.push(<Muted key="j">{NOT_YET}</Muted>)
     else if (!j.note && j.judgment) {
@@ -230,10 +272,13 @@ function Additions({ levels, row, frame }: { levels: LevelsFile; row: RowKey; fr
       const m = /\s*(Note: this is based on only [^.]*)\.?\s*$/.exec(j.judgment)
       const main = m ? j.judgment.slice(0, m.index) : j.judgment
       out.push(
-        <Para key="j">
-          {main}
-          {m && <span className="based-on-inline"> ({m[1]})</span>}
-        </Para>,
+        <div key="j">
+          <hr className="frame-rule" />
+          <p className={cls(true)}>
+            {main}
+            {m && <span className="based-on-inline"> ({m[1]})</span>}
+          </p>
+        </div>,
       )
     }
   }
@@ -359,8 +404,8 @@ function ActivityRow({ levels, row, frame }: { levels: LevelsFile; row: 'article
         <Muted>{s.kind.note}</Muted>
       ) : (
         <>
-          <SelectTopicBody t={s.topic} unit={unit} compact={spec.compact} />
-          <SelectKindBody k={s.kind} unit={unit} compact={spec.compact} />
+          <SelectTopicBody t={s.topic} unit={unit} compact={spec.compact} title={spec.topicTitle} />
+          <SelectKindBody k={s.kind} unit={unit} compact={spec.compact} title={spec.kindLabel} />
           <Additions levels={levels} row={row} frame={frame} />
         </>
       )}
@@ -412,7 +457,7 @@ function DiscussionRow({ levels, frame }: { levels: LevelsFile; frame: FrameNo }
     let info: string | undefined
     if (frame === 3) {
       const s = levels.select?.in_the_discussion
-      posts = <SelectKindBody k={s?.kind} unit="post" compact />
+      posts = <SelectKindBody k={s?.kind} unit="post" compact hideBasedOn />
     } else {
       const d = frame === 1 ? levels.extract?.in_the_discussion : levels.prioritize?.in_the_discussion
       const items: PostItem[] = frame === 1 ? (d?.kind ?? []) : (d?.kind?.items ?? [])
@@ -444,7 +489,7 @@ function DiscussionRow({ levels, frame }: { levels: LevelsFile; frame: FrameNo }
   return (
     <Box>
       <Para>{violationText(violation)}</Para>
-      <SelectKindBody k={s?.kind} unit="post" compact />
+      <SelectKindBody k={s?.kind} unit="post" compact hideBasedOn />
       <Additions levels={levels} row="in_the_discussion" frame={frame} />
     </Box>
   )

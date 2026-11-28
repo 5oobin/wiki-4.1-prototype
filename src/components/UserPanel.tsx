@@ -36,13 +36,16 @@ export default function UserPanel({ user, levels }: Props) {
     <div className="user-panel">
       <AsIsInfo levels={levels} />
 
-      <select className="row-select" value={row} onChange={(e) => chooseRow(e.target.value as RowKey)}>
-        {ROWS.map((r) => (
-          <option key={r.key} value={r.key}>
-            {r.label}
-          </option>
-        ))}
-      </select>
+      <label className="row-select-label">
+        <span className="row-select-caption">Information source:</span>
+        <select className="row-select" value={row} onChange={(e) => chooseRow(e.target.value as RowKey)}>
+          {ROWS.map((r) => (
+            <option key={r.key} value={r.key}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <div className="frame-area">
         <div className="frame-tabs" role="tablist">

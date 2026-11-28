@@ -418,10 +418,22 @@ code { font-size: 0.92em; background: #f8f9fa; padding: 0 2px; }
 /* Frames 3–5 (article activity): description (Based on …) show examples */
 .described { margin-bottom: 14px; }
 .based-on-inline { color: var(--muted); }
-.examples-toggle { font-weight: normal; font-size: 13px; }
-.described .examples { margin-top: -4px; }
+.examples-toggle { display: block; font-weight: normal; font-size: 13px; margin: -4px 0 0; }
+.described .examples { margin-top: 6px; }
+/* Frames 3–5: part title with its ⓘ Based on … note; note alone when untitled */
+.part-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 4px; }
+.part-info { margin: 0 0 4px; font-size: 12px; color: #8a8f95; line-height: 1.35; }
+/* Frames 4–5: line above each added paragraph; the current frame's addition is bold */
+.frame-rule { border: none; border-top: 0.5px solid #c8ccd1; margin: 4px 0 12px; }
+.frame-para.added { font-weight: bold; }
+.frame-para.added .based-on-inline { font-weight: normal; }
 .described .counted-pages { margin-bottom: 0; }
 .item-sep { color: var(--muted); font-weight: normal; }
 .post-page { font-size: 12px; color: var(--muted); }
 .post-head { margin-bottom: 3px; }
 .post-head .item-head { margin-bottom: 0; }
+
+/* "Information source:" label beside the row dropdown */
+.row-select-label { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+.row-select-caption { font-size: 14px; white-space: nowrap; }
+.row-select-label .row-select { margin-bottom: 0; flex: 1 1 auto; width: auto; min-width: 0; }
